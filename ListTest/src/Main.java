@@ -16,7 +16,6 @@ class Worker {
         return "id =" + id + ", nombre =" + nombre + ", sueldo =" + sueldo ;
     }
 }
-
 public class Main {
     public static void main(String[] args) {
         // Lista worker
