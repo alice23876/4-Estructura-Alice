@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/4-Estructura-Alice.iml" filepath="$PROJECT_DIR$/.idea/4-Estructura-Alice.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ListTest/ListTest.iml" filepath="$PROJECT_DIR$/ListTest/ListTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Stack1/Stack1.iml" filepath="$PROJECT_DIR$/Stack1/Stack1.iml" />
+      <module fileurl="file://$PROJECT_DIR$/cadenaAlreves/cadenaAlreves.iml" filepath="$PROJECT_DIR$/cadenaAlreves/cadenaAlreves.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ejercicio/ejercicio.iml" filepath="$PROJECT_DIR$/ejercicio/ejercicio.iml" />
+      <module fileurl="file://$PROJECT_DIR$/numerosRecursivos/numerosRecursivos.iml" filepath="$PROJECT_DIR$/numerosRecursivos/numerosRecursivos.iml" />
+    </modules>
+  </component>
+</project>
