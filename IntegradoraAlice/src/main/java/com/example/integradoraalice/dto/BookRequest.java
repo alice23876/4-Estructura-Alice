@@ -12,4 +12,5 @@ public class BookRequest {
     private String title;
     private String author;
     private int totalCopies;
+    private int availableCopies;
 }

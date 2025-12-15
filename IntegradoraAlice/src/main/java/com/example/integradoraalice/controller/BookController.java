@@ -21,7 +21,8 @@ public class BookController {
                 libro.getId(),
                 libro.getTitle(),
                 libro.getAuthor(),
-                libro.getTotalCopies()
+                libro.getTotalCopies(),
+                libro.getAvailableCopies()
         );
     }
     private Book modelo(BookRequest dto) {

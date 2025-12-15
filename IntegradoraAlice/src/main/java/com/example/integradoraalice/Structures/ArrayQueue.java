@@ -12,7 +12,7 @@ public class ArrayQueue<T> {
     @SuppressWarnings("unchecked")
     public ArrayQueue(int capacity) {
         this.capacity = capacity;
-        this.data = (T[]) new Object[capacity];  // <–– PERMITE CUALQUIER T
+        this.data = (T[]) new Object[capacity];
         this.front = 0;
         this.rear = 0;
         this.size = 0;
@@ -72,14 +72,6 @@ public class ArrayQueue<T> {
         return (T) data[front];
     }
 
-    // Limpieza total
-    public void clear() {
-        data = new Object[capacity];
-        size = 0;
-        front = 0;
-        rear = 0;
-    }
-
     // Métodos auxiliares
     private void expandCapacity() {
         if (size < data.length)
@@ -102,26 +94,5 @@ public class ArrayQueue<T> {
 
     public int size() {
         return size;
-    }
-
-    // Print para depuración
-    public void print() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[");
-
-        for (int i = 0; i < size; i++) {
-            sb.append(data[(front + i) % data.length]);
-            if (i < size - 1)
-                sb.append(" => ");
-        }
-        sb.append("]");
-        System.out.println(sb.toString());
-    }
-    // Métodos opcionales para búsquedas
-    @SuppressWarnings("unchecked")
-    public T get(int index) {
-        if (index < 0 || index >= size)
-            return null;
-        return (T) data[(front + index) % data.length];
     }
 }

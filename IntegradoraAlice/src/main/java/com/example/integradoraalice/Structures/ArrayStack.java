@@ -78,19 +78,6 @@ public class ArrayStack<T> {
         }
         data = newArr;
     }
-
-    // Print para depuración
-    public void print() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[");
-        for (int i = top - 1; i >= 0; i--) {
-            sb.append(data[i]);
-            if (i != 0)
-                sb.append(" -> ");
-        }
-        sb.append("]");
-        System.out.println(sb.toString());
-    }
     public Object[] mostrarLista() {
 
         Object[] resultado = new Object[top + 1];

@@ -16,7 +16,6 @@ public class HistoryAction {
             this.previousAvailableCopies = previousAvailableCopies;
         }
 
-        // ADD_TO_WAITLIST
         public HistoryAction(String actionType, int bookId, int userId) {
             this.actionType = actionType;
             this.bookId = bookId;

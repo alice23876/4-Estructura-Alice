@@ -18,9 +18,7 @@ public class LoanService {
     private final UserService userService;
     private final HistoryService historyService;
 
-    public LoanService(BookService bookService,
-                       UserService userService,
-                       HistoryService historyService) {
+    public LoanService(BookService bookService, UserService userService, HistoryService historyService) {
         this.bookService = bookService;
         this.userService = userService;
         this.historyService = historyService;

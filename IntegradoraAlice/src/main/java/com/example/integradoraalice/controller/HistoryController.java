@@ -19,10 +19,7 @@ public class HistoryController {private final HistoryService historyService;
     private final LoanService loanService;
     private final BookService bookService;
 
-    public HistoryController(
-            HistoryService historyService,
-            LoanService loanService,
-            BookService bookService) {
+    public HistoryController(HistoryService historyService, LoanService loanService, BookService bookService) {
         this.historyService = historyService;
         this.loanService = loanService;
         this.bookService = bookService;
