@@ -1,5 +1,6 @@
 package com.example.integradoraalice.Structures;
 
+//Sirve para manejar el historial y deshacer la última acción realizada.
 public class ArrayStack<T> {
     private Object[] data;
     private int top;
@@ -89,5 +90,15 @@ public class ArrayStack<T> {
         }
         sb.append("]");
         System.out.println(sb.toString());
+    }
+    public Object[] mostrarLista() {
+
+        Object[] resultado = new Object[top + 1];
+
+        for (int i = 0; i <= top; i++) {
+            resultado[i] = data[i];
+        }
+
+        return resultado;
     }
 }

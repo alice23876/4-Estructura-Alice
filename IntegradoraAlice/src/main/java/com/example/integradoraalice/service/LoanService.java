@@ -1,9 +1,9 @@
 package com.example.integradoraalice.service;
 
 import com.example.integradoraalice.Model.Book;
+import com.example.integradoraalice.Model.HistoryAction;
 import com.example.integradoraalice.Model.Loan;
 import com.example.integradoraalice.Structures.ArrayQueue;
-import com.example.integradoraalice.Structures.ArrayStack;
 import com.example.integradoraalice.Structures.CatalogoSyngleLinkedList;
 import com.example.integradoraalice.Structures.Node;
 import org.springframework.stereotype.Service;
@@ -12,196 +12,82 @@ import org.springframework.stereotype.Service;
 public class LoanService {
 
     private final CatalogoSyngleLinkedList prestamos = new CatalogoSyngleLinkedList();
-    private final ArrayStack<String> historial = new ArrayStack<>();
     private int proximoIdPrestamo = 1;
 
-    private final BookService servicioLibros;
-    private final UserService servicioUsuarios;
+    private final BookService bookService;
+    private final UserService userService;
+    private final HistoryService historyService;
 
-    public LoanService(BookService servicioLibros, UserService servicioUsuarios) {
-        this.servicioLibros = servicioLibros;
-        this.servicioUsuarios = servicioUsuarios;
+    public LoanService(BookService bookService,
+                       UserService userService,
+                       HistoryService historyService) {
+        this.bookService = bookService;
+        this.userService = userService;
+        this.historyService = historyService;
     }
-    // CREAR PRÉSTAMO
-    public String crearPrestamo(int idUsuario, int idLibro) {
 
-        Book libro = servicioLibros.busquedaPorId(idLibro);
-        if (libro == null)
+    // CREAR PRÉSTAMO
+    public String crearPrestamo(int userId, int bookId) {
+
+        Book book = bookService.busquedaPorId(bookId);
+        if (book == null)
             return "Libro no encontrado";
 
-        if (servicioUsuarios.buscarPorId(idUsuario) == null)
+        if (userService.buscarPorId(userId) == null)
             return "Usuario no encontrado";
 
-        if (libro.getAvailableCopies() > 0) {
+        if (book.getAvailableCopies() > 0) {
 
-            Loan nuevo = new Loan(proximoIdPrestamo++, idUsuario, idLibro, "ACTIVE");
-            prestamos.add(nuevo);
+            int copiasAntes = book.getAvailableCopies();
 
-            libro.setAvailableCopies(libro.getAvailableCopies() - 1);
+            Loan loan = new Loan(proximoIdPrestamo++, userId, bookId, "ACTIVE");
+            prestamos.add(loan);
 
-            historial.push("CREATE_LOAN:" + nuevo.getId());
+            book.setAvailableCopies(copiasAntes - 1);
+
+            // para undo
+            historyService.push(
+                    new HistoryAction(
+                            "CREATE_LOAN",
+                            loan.getId(),
+                            bookId,
+                            copiasAntes
+                    )
+            );
+
             return "Préstamo creado correctamente";
         }
 
-        // Si no hay copias → agregar a lista de espera
-        libro.getWaitList().offer(idUsuario);
-        historial.push("ADD_TO_WAITLIST:" + idUsuario + ":" + idLibro);
-        return "No hay copias. Usuario agregado a lista de espera";
+        // mi lista de espera
+        book.getWaitList().offer(userId);
+
+        historyService.push(
+                new HistoryAction(
+                        "ADD_TO_WAITLIST",
+                        bookId,
+                        userId
+                )
+        );
+
+        return "Usuario agregado a lista de espera";
     }
-    // DEVOLVER LIBRO
-    public String devolverLibro(int idPrestamo) {
-
-        var actual = prestamos.head;
-
-        while (actual != null) {
-            Loan p = (Loan) actual.data;
-
-            if (p.getId() == idPrestamo && p.getStatus().equals("ACTIVE")) {
-
-                p.setStatus("RETURNED");
-
-                Book libro = servicioLibros.busquedaPorId(p.getBookId());
-                if (libro == null)
-                    return "Libro no encontrado";
-
-                // Hay lista de espera?
-                if (!libro.getWaitList().isEmpty()) {
-
-                    int siguienteUsuario = libro.getWaitList().poll();
-
-                    Loan prestamoAuto = new Loan(
-                            proximoIdPrestamo++,
-                            siguienteUsuario,
-                            libro.getId(),
-                            "ACTIVE"
-                    );
-
-                    prestamos.add(prestamoAuto);
-
-                    historial.push("AUTO_LOAN:" + prestamoAuto.getId());
-
-                    return "Devuelto. Préstamo automático para usuario " + siguienteUsuario;
-                }
-
-                // Si no hay lista de espera → incrementar copias
-                libro.setAvailableCopies(libro.getAvailableCopies() + 1);
-
-                historial.push("RETURN_LOAN:" + p.getId());
-                return "Libro devuelto correctamente";
-            }
-
-            actual = actual.next;
-        }
-
-        return "Préstamo no encontrado";
-    }
-    // OBTENER PRÉSTAMOS ACTIVOS
-    public CatalogoSyngleLinkedList obtenerPrestamosActivos() {
-        CatalogoSyngleLinkedList activos = new CatalogoSyngleLinkedList();
-        var actual = prestamos.head;
-
-        while (actual != null) {
-            Loan p = (Loan) actual.data;
-            if (p.getStatus().equals("ACTIVE"))
-                activos.add(p);
-
-            actual = actual.next;
-        }
-
-        return activos;
-    }
-    // OBTENER PRESTAMOS POR USUARIO
-    public CatalogoSyngleLinkedList obtenerPrestamosPorUsuario(int idUsuario) {
-
-        CatalogoSyngleLinkedList lista = new CatalogoSyngleLinkedList();
-        var actual = prestamos.head;
-
-        while (actual != null) {
-            Loan p = (Loan) actual.data;
-            if (p.getUserId() == idUsuario)
-                lista.add(p);
-
-            actual = actual.next;
-        }
-
-        return lista;
-    }
-    // OBTENER POSICIÓN EN LISTA DE ESPERA
-    public int obtenerPosicionReserva(int idLibro, int idUsuario) {
-        Book libro = servicioLibros.busquedaPorId(idLibro);
-        if (libro == null)
-            return -1;
-        ArrayQueue<Integer> cola = libro.getWaitList();
-        int posicion = 1;
-        ArrayQueue<Integer> aux = new ArrayQueue<>(50);
-
-        int encontrado = -1;
-
-        while (!cola.isEmpty()) {
-            int u = cola.poll();
-            aux.offer(u);
-
-            if (u == idUsuario && encontrado == -1)
-                encontrado = posicion;
-
-            posicion++;
-        }
-
-        // restaurar cola original
-        while (!aux.isEmpty())
-            cola.offer(aux.poll());
-
-        return encontrado;
-    }
-    // CANCELAR RESERVA
-    public String cancelarReserva(int idLibro, int idUsuario) {
-
-        Book libro = servicioLibros.busquedaPorId(idLibro);
-        if (libro == null)
-            return "Libro no encontrado";
-
-        ArrayQueue<Integer> vieja = libro.getWaitList();
-        ArrayQueue<Integer> nueva = new ArrayQueue<>(50);
-
-        boolean removido = false;
-
-        while (!vieja.isEmpty()) {
-            int valor = vieja.poll();
-            if (valor == idUsuario)
-                removido = true;
-            else
-                nueva.offer(valor);
-        }
-
-        libro.setWaitList(nueva);
-
-        return removido ? "Reserva cancelada" : "Usuario no estaba en lista";
-    }
-    // HISTORIAL (STACK)
-    public ArrayStack<String> obtenerPilaHistorial() {
-        return historial;
-    }
-    // BUSCAR PRÉSTAMO POR ID
     public Loan buscarPrestamoPorId(int id) {
-
         var actual = prestamos.head;
-
         while (actual != null) {
-            Loan p = (Loan) actual.data;
-            if (p.getId() == id)
-                return p;
-
+            Loan l = (Loan) actual.data;
+            if (l.getId() == id)
+                return l;
             actual = actual.next;
         }
-
         return null;
     }
-    // ELIMINAR PRÉSTAMO
-    public void eliminarPrestamo(Loan p) {
+
+    public void eliminarPrestamo(Loan loan) {
         Node actual = prestamos.head;
         Node anterior = null;
+
         while (actual != null) {
-            if (actual.data == p) {
+            if (actual.data == loan) {
                 if (anterior == null)
                     prestamos.head = actual.next;
                 else
@@ -210,6 +96,146 @@ public class LoanService {
             }
             anterior = actual;
             actual = actual.next;
+        }
+    }
+    public String devolverLibro(int idPrestamo) {
+
+        Node actual = prestamos.head;
+
+        while (actual != null) {
+
+            Loan loan = (Loan) actual.data;
+
+            if (loan.getId() == idPrestamo &&
+                    loan.getStatus().equals("ACTIVE")) {
+
+                loan.setStatus("RETURNED");
+
+                Book book = bookService.busquedaPorId(loan.getBookId());
+                if (book == null)
+                    return "Libro no encontrado";
+
+                // Si hay usuarios en lista de espera
+                if (!book.getWaitList().isEmpty()) {
+
+                    int siguienteUsuario = book.getWaitList().poll();
+
+                    Loan nuevo = new Loan(
+                            proximoIdPrestamo++,
+                            siguienteUsuario,
+                            book.getId(),
+                            "ACTIVE"
+                    );
+
+                    prestamos.add(nuevo);
+
+                    return "Libro devuelto y préstamo reasignado al usuario "
+                            + siguienteUsuario;
+                }
+                book.setAvailableCopies(
+                        book.getAvailableCopies() + 1
+                );
+
+                return "Libro devuelto correctamente";
+            }
+
+            actual = actual.next;
+        }
+
+        return "Préstamo no encontrado o ya devuelto";
+    }
+    public CatalogoSyngleLinkedList obtenerPrestamosActivos() {
+
+        CatalogoSyngleLinkedList activos =
+                new CatalogoSyngleLinkedList();
+
+        Node actual = prestamos.head;
+
+        while (actual != null) {
+
+            Loan loan = (Loan) actual.data;
+
+            if (loan.getStatus().equals("ACTIVE")) {
+                activos.add(loan);
+            }
+
+            actual = actual.next;
+        }
+
+        return activos;
+    }
+    public CatalogoSyngleLinkedList obtenerPrestamosPorUsuario(int idUsuario) {
+
+        CatalogoSyngleLinkedList lista =
+                new CatalogoSyngleLinkedList();
+
+        Node actual = prestamos.head;
+
+        while (actual != null) {
+
+            Loan loan = (Loan) actual.data;
+
+            if (loan.getUserId() == idUsuario) {
+                lista.add(loan);
+            }
+
+            actual = actual.next;
+        }
+
+        return lista;
+    }
+    public int obtenerPosicionReserva(int bookId, int userId) {
+
+        Book book = bookService.busquedaPorId(bookId);
+        if (book == null)
+            return -1;
+
+        ArrayQueue<Integer> cola = book.getWaitList();
+        ArrayQueue<Integer> aux = new ArrayQueue<>(50);
+
+        int posicion = 1;
+        int encontrada = -1;
+
+        while (!cola.isEmpty()) {
+            int actual = cola.poll();
+            aux.offer(actual);
+
+            if (actual == userId && encontrada == -1)
+                encontrada = posicion;
+
+            posicion++;
+        }
+        //restaura la cola originak
+        while (!aux.isEmpty())
+            cola.offer(aux.poll());
+
+        return encontrada;
+    }
+    public String cancelarReserva(int bookId, int userId) {
+
+        Book book = bookService.busquedaPorId(bookId);
+        if (book == null)
+            return "Libro no encontrado";
+
+        ArrayQueue<Integer> vieja = book.getWaitList();
+        ArrayQueue<Integer> nueva = new ArrayQueue<>(50);
+
+        boolean eliminado = false;
+
+        while (!vieja.isEmpty()) {
+            int actual = vieja.poll();
+            if (actual == userId)
+                eliminado = true;
+            else
+                nueva.offer(actual);
+        }
+
+        book.setWaitList(nueva);
+
+        if (eliminado) {
+            return "Reserva cancelada";
+        } else {
+            return "Usuario no estaba en la lista";
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.example.integradoraalice.Structures;
 
+// maneja la lista de espera de los libros.Los usuarios se forman y se atienden en el orden en que llegan, usando el principio FIFO,
 public class ArrayQueue<T> {
 
     private Object[] data;

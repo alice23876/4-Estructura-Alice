@@ -1,26 +1,46 @@
 package com.example.integradoraalice.Model;
 
+//Sirve para guardar las acciones del sistema en el historial.
+
 public class HistoryAction {
+        private String actionType;
+        private int loanId;
+        private int bookId;
+        private int userId;
+        private int previousAvailableCopies;
 
-    private String accion;     // LOAN_CREATED, LOAN_RETURNED, RESERVATION_CREATED
-    private String detalle;
+        public HistoryAction(String actionType, int loanId, int bookId, int previousAvailableCopies) {
+            this.actionType = actionType;
+            this.loanId = loanId;
+            this.bookId = bookId;
+            this.previousAvailableCopies = previousAvailableCopies;
+        }
 
-    public HistoryAction(String accion, String detalle) {
-        this.accion = accion;
-        this.detalle = detalle;
-    }
+        // ADD_TO_WAITLIST
+        public HistoryAction(String actionType, int bookId, int userId) {
+            this.actionType = actionType;
+            this.bookId = bookId;
+            this.userId = userId;
+        }
 
-    public String getAccion() {
-        return accion;
-    }
+        public String getActionType() {
+            return actionType;
+        }
 
-    public String getDetalle() {
-        return detalle;
-    }
+        public int getLoanId() {
+            return loanId;
+        }
 
-    @Override
-    public String toString() {
-        return accion + " | " + detalle;
-    }
+        public int getBookId() {
+            return bookId;
+        }
+
+        public int getUserId() {
+            return userId;
+        }
+
+        public int getPreviousAvailableCopies() {
+            return previousAvailableCopies;
+        }
 }
 

@@ -11,10 +11,10 @@ public class BookService {
     private int nextId = 5;
 
     public BookService() {
-        catalogo.add(new Book(1, "Un Mundo Feliz", "Aldous Huxley", 3, true));
-        catalogo.add(new Book(2, "Orgullo y Prejuicio", "Jane Austen", 3, true));
-        catalogo.add(new Book(3, "El Principito", "Antoine de Saint-Exupéry", 3, true));
-        catalogo.add(new Book(4, "Crónica de una Muerte", "Gabriel García Márquez",3,true));
+        catalogo.add(new Book(1, "Un Mundo Feliz", "Aldous Huxley", 2, true));
+        catalogo.add(new Book(2, "Orgullo y Prejuicio", "Jane Austen", 2, true));
+        catalogo.add(new Book(3, "El Principito", "Antoine de Saint-Exupéry", 2, true));
+        catalogo.add(new Book(4, "Crónica de una Muerte", "Gabriel García Márquez",2,true));
     }
 
     public String agregarLibro(Book libro) {
